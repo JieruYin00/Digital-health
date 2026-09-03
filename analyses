@@ -204,4 +204,65 @@ forvalues c = 1/22 {
 	asdoc margins, dydx(cwave), save(fig3d2.doc)
 }
 
+#meta-analysis
+clear
+use aging_digital
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
 
+clear
+use cog_digital
+meta set cog_coef cog_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use func_digital
+meta set func_coef func_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use health_digital
+meta set health_coef health_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use aging_time
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use cog_time
+meta set cog_coef cog_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use func_time
+meta set func_coef func_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use health_time
+meta set health_coef health_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use aging_inter
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use cog_inter
+meta set cog_coef cog_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use func_inter
+meta set func_coef func_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use health_inter
+meta set health_coef health_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+#Figure 4
