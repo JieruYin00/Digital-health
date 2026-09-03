@@ -6,7 +6,7 @@ forvalues c = 1/22 {
   asdoc sum age if base==1 & age>=50 & age!=. & country==`c'
 }
 
-#Fig 1
+#Figure 1
 #map
 forvalues c = 1/22 {
   sum adj_latent_aging_score if base ==1 & age>=50 & age!=.& country ==`c' 
@@ -115,7 +115,7 @@ forvalues c = 1/22 {
   asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& income_q ==1 & country == `c'
 }
 
-##Supplementary Table 2
+#Supplementary Table 2
 gen edu1=.
 replace edu1=1 if edu==3
 replace edu1=2 if edu==2
@@ -130,9 +130,78 @@ forvalues c = 1/22 {
 	asdoc xtgee digital livealone age sex i.income_q1 livepr employ i.edu1 cwave if finsamp==1 & country==`c', family(binomial) link(logit) corr(exchangeable) i(pid) vce(robust) nmp eform
 }
 
+#meta-analysis
+#Conduct a meta-analysis on each of groups
 clear
-use "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\data\GEEage.dta"
-drop if country== "Mexico"
+use GEEage
 meta set or se, random(reml) studylabel (country)
 meta summarize, random(reml) predint(95)
+
+clear
+use GEEsex
+meta set or se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use GEEprimary
+meta set or se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use GEEsecondary
+meta set or se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use GEEincome4
+meta set or se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use GEEincome3
+meta set or se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use GEEincome2
+meta set or se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use GEEincome1
+meta set or se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+#Figure 3, Supplementary Table 8, and Supplementary Fig.5
+clear
+use xcountry_digital
+global demo " b_livealone b_age b_sex b_livepr"
+global ses " b_hhitot b_employ b_edu "
+global health "b_zcesd_con b_ltc"
+global behavior "b_smoke b_drink b_exercise"
+
+forvalues c = 1/22 {
+	asdoc xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & country==`c' || pid: cwave, vce(robust), save(fig3a1.doc)
+	asdoc margins, dydx(b_digital), save(fig3a.doc)
+	asdoc margins, dydx(cwave), save(fig3a2.doc)
+}
+
+forvalues c = 1/22 {
+	asdoc xtmixed adj_latent_cog_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & country==`c' || pid: cwave, vce(robust), save(fig3b1.doc)
+	asdoc margins, dydx(b_digital), save(fig3b.doc)
+	asdoc margins, dydx(cwave), save(fig3b2.doc)
+}
+
+forvalues c = 1/22 {
+	asdoc xtmixed adj_latent_func_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & country==`c' || pid: cwave, vce(robust), save(fig3c1.doc)
+	asdoc margins, dydx(b_digital), save(fig3c.doc)
+	asdoc margins, dydx(cwave), save(fig3c2.doc)
+}
+
+forvalues c = 1/22 {
+	asdoc xtmixed adj_latent_health_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & country==`c' || pid: cwave, vce(robust), save(fig3d1.doc)
+	asdoc margins, dydx(b_digital), save(fig3d.doc)
+	asdoc margins, dydx(cwave), save(fig3d2.doc)
+}
+
 
