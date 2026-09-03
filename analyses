@@ -9,10 +9,19 @@ forvalues c = 1/22 {
 #Fig 1
 #map
 forvalues c = 1/22 {
-  sum adj_latent_aging_score if base ==1 & age>=50 & age!=.& country ==`c'
-  sum adj_latent_cog_score if base ==1 & age>=50 & age!=.& country ==`c'
-  sum adj_latent_func_score if base ==1 & age>=50 & age!=.& country ==`c'
-  sum adj_latent_health_score if base ==1 & age>=50 & age!=.& country ==`c'
+  sum adj_latent_aging_score if base ==1 & age>=50 & age!=.& country ==`c' 
+}
+
+forvalues c = 1/22 {
+  sum adj_latent_cog_score if base ==1 & age>=50 & age!=.& country ==`c' 
+}
+
+forvalues c = 1/22 {
+  sum adj_latent_func_score if base ==1 & age>=50 & age!=.& country ==`c' 
+}
+
+forvalues c = 1/22 {
+  sum adj_latent_health_score if base ==1 & age>=50 & age!=.& country ==`c' 
 }
 
 #Supplementary Fig 2
@@ -33,3 +42,97 @@ forvalues c = 1/22 {
   asdoc proportion b_digital if base==1 & age>=50 & age!=.& income_q ==2 & country == `c'
   asdoc proportion b_digital if base==1 & age>=50 & age!=.& income_q ==1 & country == `c'
 }
+
+forvalues c = 1/22 {
+  #age
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& b_age >= 50 & b_age <=64 & country == `c'
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& b_age >= 65 & b_age !=. & country == `c'
+  #sex
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& b_sex==0 & country == `c'
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& b_sex==1 & country == `c'
+  #edu
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& b_edu==3 & country == `c'
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& b_edu==2 & country == `c'
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& b_edu==1 & country == `c'
+  #income
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& income_q ==4 & country == `c'
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& income_q ==3 & country == `c'
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& income_q ==2 & country == `c'
+  asdoc proportion adj_latent_aging_score if base==1 & age>=50 & age!=.& income_q ==1 & country == `c'
+}
+
+forvalues c = 1/22 {
+  #age
+  asdoc proportion adj_latent_cog_score if base==1 & age>=50 & age!=.& b_age >= 50 & b_age <=64 & country == `c'
+  asdoc proportion adj_latent_cog_score if base==1 & age>=50 & age!=.& b_age >= 65 & b_age !=. & country == `c'
+  #sex
+  asdoc proportion adj_latent_cog_score if base==1 & age>=50 & age!=.& b_sex==0 & country == `c'
+  asdoc proportion adj_latent_cog_score if base==1 & age>=50 & age!=.& b_sex==1 & country == `c'
+  #edu
+  asdoc proportion adj_latent_cog_score if base==1 & age>=50 & age!=.& b_edu==3 & country == `c'
+  asdoc proportion adj_latent_cog_score if base==1 & age>=50 & age!=.& b_edu==2 & country == `c'
+  asdoc proportion adj_latent_cog_score if base==1 & age>=50 & age!=.& b_edu==1 & country == `c'
+  #income
+  asdoc proportion adj_latent_cog_scor if base==1 & age>=50 & age!=.& income_q ==4 & country == `c'
+  asdoc proportion adj_latent_cog_scor if base==1 & age>=50 & age!=.& income_q ==3 & country == `c'
+  asdoc proportion adj_latent_cog_scor if base==1 & age>=50 & age!=.& income_q ==2 & country == `c'
+  asdoc proportion adj_latent_cog_scor if base==1 & age>=50 & age!=.& income_q ==1 & country == `c'
+}
+
+forvalues c = 1/22 {
+  #age
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& b_age >= 50 & b_age <=64 & country == `c'
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& b_age >= 65 & b_age !=. & country == `c'
+  #sex
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& b_sex==0 & country == `c'
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& b_sex==1 & country == `c'
+  #edu
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& b_edu==3 & country == `c'
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& b_edu==2 & country == `c'
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& b_edu==1 & country == `c'
+  #income
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& income_q ==4 & country == `c'
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& income_q ==3 & country == `c'
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& income_q ==2 & country == `c'
+  asdoc proportion adj_latent_func_score if base==1 & age>=50 & age!=.& income_q ==1 & country == `c'
+}
+
+forvalues c = 1/22 {
+  #age
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& b_age >= 50 & b_age <=64 & country == `c'
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& b_age >= 65 & b_age !=. & country == `c'
+  #sex
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& b_sex==0 & country == `c'
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& b_sex==1 & country == `c'
+  #edu
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& b_edu==3 & country == `c'
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& b_edu==2 & country == `c'
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& b_edu==1 & country == `c'
+  #income
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& income_q ==4 & country == `c'
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& income_q ==3 & country == `c'
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& income_q ==2 & country == `c'
+  asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& income_q ==1 & country == `c'
+}
+
+##Supplementary Table 2
+gen edu1=.
+replace edu1=1 if edu==3
+replace edu1=2 if edu==2
+replace edu1=3 if edu==1
+gen income_q1=.
+replace income_q1=1 if income_q==4
+replace income_q1=2 if income_q==3
+replace income_q1=3 if income_q==2
+replace income_q1=4 if income_q==1
+
+forvalues c = 1/22 {
+	asdoc xtgee digital livealone age sex i.income_q1 livepr employ i.edu1 cwave if finsamp==1 & country==`c', family(binomial) link(logit) corr(exchangeable) i(pid) vce(robust) nmp eform
+}
+
+clear
+use "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\data\GEEage.dta"
+drop if country== "Mexico"
+meta set or se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
