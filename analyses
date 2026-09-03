@@ -1,0 +1,35 @@
+#Supplementary Table 1
+forvalues c = 1/22 {
+  foreach out in digital sex edu livealone employ livepr ltc smoke drink exercise income_q{
+    asdoc proportion `out' if base==1 & age>=50 & age!=. & country==`c'
+    }
+  asdoc sum age if base==1 & age>=50 & age!=. & country==`c'
+}
+
+#Fig 1
+#map
+forvalues c = 1/22 {
+  sum adj_latent_aging_score if base ==1 & age>=50 & age!=.& country ==`c'
+  sum adj_latent_cog_score if base ==1 & age>=50 & age!=.& country ==`c'
+  sum adj_latent_func_score if base ==1 & age>=50 & age!=.& country ==`c'
+  sum adj_latent_health_score if base ==1 & age>=50 & age!=.& country ==`c'
+}
+
+#Supplementary Fig 2
+forvalues c = 1/22 {
+  #age
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& b_age >= 50 & b_age <=64 & country == `c'
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& b_age >= 65 & b_age !=. & country == `c'
+  #sex
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& b_sex==0 & country == `c'
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& b_sex==1 & country == `c'
+  #edu
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& b_edu==3 & country == `c'
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& b_edu==2 & country == `c'
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& b_edu==1 & country == `c'
+  #income
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& income_q ==4 & country == `c'
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& income_q ==3 & country == `c'
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& income_q ==2 & country == `c'
+  asdoc proportion b_digital if base==1 & age>=50 & age!=.& income_q ==1 & country == `c'
+}
