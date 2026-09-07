@@ -1,4 +1,5 @@
-#Supplementary Table 1
+###############################################################################
+#Figure 1 (digital) and Supplementary Table 1
 forvalues c = 1/22 {
   foreach out in digital sex edu livealone employ livepr ltc smoke drink exercise income_q{
     asdoc proportion `out' if base==1 & age>=50 & age!=. & country==`c'
@@ -6,7 +7,7 @@ forvalues c = 1/22 {
   asdoc sum age if base==1 & age>=50 & age!=. & country==`c'
 }
 
-#Figure 1
+#Figure 1 (healthy aging score)
 #map
 forvalues c = 1/22 {
   sum adj_latent_aging_score if base ==1 & age>=50 & age!=.& country ==`c' 
@@ -24,6 +25,7 @@ forvalues c = 1/22 {
   sum adj_latent_health_score if base ==1 & age>=50 & age!=.& country ==`c' 
 }
 
+###############################################################################
 #Supplementary Fig 2
 forvalues c = 1/22 {
   #age
@@ -115,6 +117,7 @@ forvalues c = 1/22 {
   asdoc proportion adj_latent_health_score if base==1 & age>=50 & age!=.& income_q ==1 & country == `c'
 }
 
+###############################################################################
 #Supplementary Table 2
 gen edu1=.
 replace edu1=1 if edu==3
@@ -172,6 +175,7 @@ use GEEincome1
 meta set or se, random(reml) studylabel (country)
 meta summarize, random(reml) predint(95)
 
+###############################################################################
 #Figure 3, Supplementary Table 8, and Supplementary Fig.5
 clear
 use xcountry_digital
@@ -265,4 +269,204 @@ use health_inter
 meta set health_coef health_se, random(reml) studylabel (country)
 meta summarize, random(reml) predint(95)
 
+###############################################################################
 #Figure 4
+#Codes for healthy aging are presented below, which were used as reference for the rest of the analyses (cognition, functional ability, and health status) in this study
+clear
+use xcountry_digital
+
+global demo " b_livealone b_age b_sex b_livepr"
+global ses " b_hhitot b_employ b_edu "
+global health "b_zcesd_con b_ltc"
+global behavior "b_smoke b_drink b_exercise"
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave b_livealone b_sex b_livepr $ses $health $behavior if b_age>=50 & b_age!=. & age_group1==0 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingage0.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave b_livealone b_sex b_livepr $ses $health $behavior if b_age>=50 & b_age!=. & age_group1==1 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingage1.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.wave b_livealone b_age b_livepr $ses $health $behavior if b_age>=50 & b_age!=. & sex==0 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingsex0.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave b_livealone b_age b_livepr $ses $health $behavior if b_age>=50 & b_age!=. & sex==1 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingsex1.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave b_livealone b_age b_livepr $ses $health $behavior if b_age>=50 & b_age!=. & edu==1 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingedu1.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & edu==2 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingedu2.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & edu==3 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingedu3.doc)
+}
+
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & income_q==1 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingincome1.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & income_q==2 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingincome2.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & income_q==3 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingincome3.doc)
+}
+
+forvalues c = 1/22 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & income_q==4 & country==`c' || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(agingincome4.doc)
+}
+
+#meta-analysis
+#Conduct a meta-analysis on each of groups
+
+clear
+use mixedagingage
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize,subgroup(group)
+
+meta set aging_coef aging_se if group==0, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+meta set aging_coef aging_se if group==1, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use mixedagingsex
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize,subgroup(group)
+
+meta set aging_coef aging_se if group==0, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+meta set aging_coef aging_se if group==1, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use mixedagingedu
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize,subgroup(group)
+
+meta set aging_coef aging_se if group==0, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+meta set aging_coef aging_se if group==1, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use mixedagingincome
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize,subgroup(group)
+
+meta set aging_coef aging_se if group==0, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+meta set aging_coef aging_se if group==1, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+###############################################################################
+#Figure 1 (gini)
+clear
+use xcountry_digital
+keep if base==1
+drop if b_age<50
+keep pid ID country digital age_group1 sex edu income_q adj_latent_cog_score adj_latent_health_score adj_latent_func_score adj_latent_aging_score
+label values edu .
+save gini
+
+###############################################################################
+#Supplementary Fig. 6
+clear
+use xcountry_digital1
+tab country wave if base==1
+
+keep pid ID wave country digital edu age livealone hhitot livepr employ sex ltc zcesd_con smoke drink exercise adj_latent_cog_score adj_latent_health_score adj_latent_func_score adj_latent_aging_score 
+xtset pid wave
+reshape wide digital edu age livealone hhitot livepr employ sex ltc zcesd_con smoke drink exercise adj_latent_cog_score adj_latent_health_score adj_latent_func_score adj_latent_aging_score, i(pid) j(wave)
+save xcountry_wide
+
+#nomiss
+gen nomiss=1 if !inlist(.,digital1, age1, sex1, edu1, livealone1, hhitot1, livepr1, employ1, zcesd_con1, ltc1, smoke1, drink1, exercise1,adj_latent_cog_score1, adj_latent_health_score1, adj_latent_func_score1, adj_latent_aging_score1, adj_latent_cog_score2, adj_latent_health_score2, adj_latent_func_score2, adj_latent_aging_score2) & age1>=50 & age1!=.
+
+global demo " livealone1 age1 sex1 livepr1"
+global ses " income_q1 employ1 edu1"
+global health "zcesd_con1 ltc1"
+global behavior "smoke1 drink1 exercise1"
+
+forvalues c=1/22 {
+	asdoc reg adj_latent_aging_score2 digital1 c.adj_latent_aging_score1 $demo $ses $health $behavior if nomiss==1 & country==`c',vce(robust), save(OLSaging.doc)
+}
+
+forvalues c=1/22 {
+	asdoc reg adj_latent_cog_score2 digital1 c.adj_latent_cog_score1 $demo $ses $health $behavior if nomiss==1 & country==`c',vce(robust), save(OLScog.doc)
+}
+
+forvalues c=1/22 {
+	asdoc reg adj_latent_func_score2 digital1 c.adj_latent_func_score1 $demo $ses $health $behavior if nomiss==1 & country==`c',vce(robust), save(OLSfunc.doc)
+}
+
+forvalues c=1/22 {
+	asdoc reg adj_latent_health_score2 digital1 c.adj_latent_health_score1 $demo $ses $health $behavior if nomiss==1 & country==`c',vce(robust), save(OLShealth.doc)
+}
+
+#meta-analyses
+clear
+use OLSaging
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use OLScognition
+meta set cog_coef cog_se, random(reml) studylabel(country) 
+meta summarize, random(reml) predint(95)
+
+clear
+use OLSfunction
+meta set func_coef func_se, random(reml) studylabel (country) 
+meta summarize, random(reml) predint(95)
+
+clear
+use OLShealth
+meta set health_coef health_se, random(reml) studylabel (country) 
+meta summarize, random(reml) predint(95)
+
+###############################################################################
+#Supplementary Figs. 7-10
+#World happiness index accessed 2025.11.24
+#https://www.worldhappiness.report/data/
+#GDP accessed 2025.11.24
+#https://databank.worldbank.org/reports.aspx?source=2&series=NY.GDP.PCAP.CD&country=
+#Life expectancy accessed 2025.11.24
+#https://data.worldbank.org/indicator/SP.DYN.LE00.IN
+$Income inequality accessed 2025.11.24
+#https://data.worldbank.org/indicator/SI.POV.GINI
+
+#Codes for world happiness index are presented below, which were used as reference for the rest of the analyses in this study
+clear
+use country_prediectors
+meta set aging_coef aging_se, random(reml) studylabel (country_abb) 
+meta regress happinessindex, random(reml)
+
+meta set cog_coef cog_se, random(reml) studylabel (country_abb) 
+meta regress happinessindex, random(reml)
+
+meta set func_coef func_se, random(reml) studylabel (country_abb) 
+meta regress happinessindex, random(reml)
+
+meta set health_coef health_se, random(reml) studylabel (country_abb)
+meta regress happinessindex, random(reml)
