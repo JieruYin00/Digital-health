@@ -132,7 +132,7 @@ gen livepr = 1 if rmstat==4 | rmstat==5 | rmstat==7 | rmstat==8
 replace livepr = 0 if rmstat==1 | rmstat==3
 tab livepr rmstat,m
 
-save xcountry_digital, replace
+save CHARLS\xcountry_digital, replace
 
 #wave1
 clear
@@ -206,7 +206,7 @@ sort ID wave
 save alljunk
 
 clear
-use xcountry_digital
+use CHARLS\xcountry_digital
 drop if wave==.
 tab wave,m
 merge 1:1 ID wave using alljunk
@@ -219,5 +219,145 @@ erase wave3_junk
 erase wave4_junk
 erase alljunk
 
-save xcountry_digital, replace
+gen country=3
+destring ID,replace
+recast long ID
+format %14.0g ID
+save CHARLS\xcountry_digital, replace
 
+###############################################################################
+#append
+clear
+use CHARLS\xcountry_digital
+append using HRS\xcountry_digital
+append using ELSA\xcountry_digital
+append using SHARE\xcountry_digital
+save xcountry_digital
+
+###############################################################################
+#outcomes: generated from the ATHLOS project
+
+clear
+use cognition1
+drop age
+recast long ID
+format %14.0g ID
+merge 1:1 ID wave country using xcountry_digital
+drop if _merge==1
+rename _merge merge
+rename Ttrait adj_latent_cog_score
+save xcountry_digital1
+
+clear
+use health1
+drop age
+recast long ID
+format %14.0g ID
+merge 1:1 ID wave country using xcountry_digital1
+drop if _merge==1 | _merge==2
+rename _merge merge1
+rename Ttrait adj_latent_health_score
+save xcountry_digital1,replace
+
+clear
+use function1
+drop age
+recast long ID
+format %14.0g ID
+merge 1:1 ID wave country using xcountry_digital1
+drop if _merge==1 | _merge==2
+rename _merge merge2
+rename Ttrait adj_latent_func_score
+save xcountry_digital1,replace
+
+clear
+use aging1
+drop age
+recast long ID
+format %14.0g ID
+merge 1:1 ID wave country using xcountry_digital1
+drop if _merge==1 | _merge==2
+rename _merge merge3
+rename Ttrait adj_latent_aging_score
+save xcountry_digital1,replace
+
+replace hhitot=. if hhitot==.i | hhitot==.s | hhitot==.n | hhitot==.m | hhitot==.b | hhitot==.r  | hhitot==.d | hhitot==.p
+replace edu=. if edu==-18 | edu==-15 | edu==-13 | edu==-4 | edu==.d | edu==.m | edu==.r
+replace sex=. if sex==.m
+recode sex(1=0)(2=1)
+label values sex .
+replace age=. if age==.m
+replace digital=. if digital==.d | digital==.m | digital==.p | digital==.r
+replace cesd_con=. if cesd_con==.j
+bysort country: egen mean_cesd = mean(cesd_con)
+bysort country: egen sd_cesd   = sd(cesd_con)
+gen zcesd_con = (cesd_con - mean_cesd) / sd_cesd
+
+sort country ID wave
+egen pid = group(country ID)
+order pid ID wave country
+sort pid ID wave country
+bysort pid (wave): gen base = (_n==1)
+
+local vars hhitot employ zcesd_con livealone digital age sex edu ltc livepr smoke drink exercise
+
+foreach v of local vars {
+    bysort pid: egen b_`v' = max(cond(base==1, `v', .))
+}
+
+bysort pid: gen twowaves = (_N >= 2)
+egen base_ok = rownonmiss(b_hhitot b_employ b_zcesd_con b_livealone b_digital b_age b_sex b_edu b_ltc b_livepr b_smoke b_drink b_exercise)
+gen use = (twowaves==1 & base_ok==13 & adj_latent_aging_score!=. & adj_latent_func_score!=. & adj_latent_health_score!=. & adj_latent_rec_score!=.)
+keep if use==1
+
+gen year=.
+replace year=2011 if country==3 & wave==1
+replace year=2013 if country==3 & wave==2
+replace year=2015 if country==3 & wave==3
+replace year=2018 if country==3 & wave==4
+
+replace year=2006 if country==21 & wave==1
+replace year=2008 if country==21 & wave==2
+replace year=2010 if country==21 & wave==3
+replace year=2012 if country==21 & wave==4
+replace year=2014 if country==21 & wave==5
+replace year=2016 if country==21 & wave==6
+
+replace year=2012 if country==7 & wave==1
+replace year=2014 if country==7 & wave==2
+replace year=2016 if country==7 & wave==3
+replace year=2018 if country==7 & wave==4
+
+replace year=2012 if study==4 & wave==1
+replace year=2014 if study==4 & wave==2
+replace year=2016 if study==4 & wave==3
+replace year=2018 if study==4 & wave==4
+
+xtset pid year
+
+bysort pid (year): gen first = year[1]
+gen cwave = year - first 
+
+gen income_q_wave = .
+levelsof wave, local(waves)
+forvalues c = 1/21 {
+    foreach w in `waves' {
+        capture xtile income_q_temp = hhitot if country == `c' & wave == `w' & b_age >= 50 & b_age != ., nq(4)
+        if _rc == 0 {
+            replace income_q_wave = income_q_temp if country == `c' & wave == `w'
+            drop income_q_temp
+        }
+    }
+}
+
+* Extract income quartile at each participant's baseline wave
+gen income_q_base = income_q_wave if base == 1
+
+* Carry the baseline quartile forward across all follow-up waves
+bysort pid: egen income_q = max(income_q_base)
+
+gen age_group1 = .
+replace age_group1=0 if b_age>=50 & b_age<65
+replace age_group1=1 if b_age>=65 &b_age!=.
+
+save xcountry_digital1
