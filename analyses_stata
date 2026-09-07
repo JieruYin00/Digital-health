@@ -498,3 +498,44 @@ use mixedhealth
 meta set health_coef health_se, random(reml) studylabel (country)
 meta summarize,subgroup(subgroup2)
 meta summarize if subgroup2==1,predint(95)
+
+###############################################################################
+#Supplementary Table 19
+clear
+use xcountry_digital1
+global demo " livealone age livepr"
+global ses " income_q employ "
+global health "zcesd_con ltc"
+global behavior " smoke drink exercise"
+
+gen cc=1 if !inlist(.,hhitot, employ, zcesd_con, livealone, digital, age, ltc, livepr, smoke, drink, exercise) & b_age>=50 & b_age!=.
+bysort pid: egen cctot=total(cc)
+gen ccsamp=1 if cctot >1
+gen finsamp=1 if ccsamp==1 & cc==1
+recode finsamp .=0
+
+#The purpose of the fixed-effects models was not to replicate the full structure of the mixed-effects models, but to assess the robustness of the average association under a more restrictive within-person identification strategy.
+
+forvalues c = 1/22 {
+asdoc xtreg adj_latent_aging_score digital c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & finsamp==1 & country==`c', fe vce(robust), save(fixedaging.doc)
+}
+
+forvalues c = 1/22 {
+asdoc xtreg adj_latent_cog_score digital c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & finsamp==1 & country==`c', fe vce(robust), save(fixedcog.doc)
+}
+
+forvalues c = 1/22 {
+asdoc xtreg adj_latent_func_score digital c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & finsamp==1 & country==`c', fe vce(robust), save(fixedfunc.doc)
+}
+
+forvalues c = 1/22 {
+asdoc xtreg adj_latent_health_score digital c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & finsamp==1 & country==`c', fe vce(robust), save(fixedhealth.doc)
+}
+
+#meta-analyses
+clear
+use fixedaging
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+
