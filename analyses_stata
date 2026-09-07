@@ -669,3 +669,32 @@ use IPWhealth
 meta set health_coef health_se, random(reml) studylabel (country)
 meta summarize, random(reml) predint(95)
 
+###############################################################################
+#Supplementary Table 8
+forvalues c = 1/21 {
+    asdoc sum adj_latent_aging_score if digital == 0 & country == `c', save(sdaging.doc)
+}
+forvalues c = 1/21 {
+    asdoc sum adj_latent_aging_score if digital == 1 & country == `c', save(sdaging.doc)
+}
+
+forvalues c = 1/21 {
+    asdoc sum adj_latent_cog_score if digital == 0 & country == `c', save(sdcog.doc)
+}
+forvalues c = 1/21 {
+    asdoc sum adj_latent_cog_score if digital == 1 & country == `c', save(sdcog.doc)
+}
+
+forvalues c = 1/21 {
+    asdoc sum adj_latent_func_score if digital == 0 & country == `c', save(sdfunc.doc)
+}
+forvalues c = 1/21 {
+    asdoc sum adj_latent_func_score if digital == 1 & country == `c', save(sdfunc.doc)
+}
+
+forvalues c = 1/21 {
+    asdoc sum adj_latent_health_score if digital == 0 & country == `c', save(sdhealth.doc)
+}
+forvalues c = 1/21 {
+    asdoc sum adj_latent_health_score if digital == 1 & country == `c', save(sdhealth.doc)
+}
