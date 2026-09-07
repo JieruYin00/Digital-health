@@ -552,3 +552,93 @@ clear
 use fixedhealth
 meta set health_coef health_se, random(reml) studylabel (country)
 meta summarize, random(reml) predint(95)
+
+###############################################################################
+#Supplementary Fig. 19
+clear
+use "cognition1"
+drop age
+recast long ID
+format %14.0g ID
+merge 1:1 ID wave country using "xcountry_digital"
+rename _merge merge1
+rename Ttrait adj_latent_cog_score
+save "IPW"
+
+clear
+use "health1"
+drop age
+recast long ID
+format %14.0g ID
+merge 1:1 ID wave country using "IPW"
+rename _merge merge2
+rename Ttrait adj_latent_health_score
+save "IPW",replace
+
+clear
+use "function1"
+drop age
+recast long ID
+format %14.0g ID
+merge 1:1 ID wave country using "IPW"
+rename _merge merge3
+rename Ttrait adj_latent_func_score
+save "IPW",replace
+
+clear
+use "aging1"
+drop age
+recast long ID
+format %14.0g ID
+merge 1:1 ID wave country using "IPW"
+rename _merge merge4
+rename Ttrait adj_latent_aging_score
+save "IPW",replace
+
+drop merge1 merge2 merge3 merge4
+
+replace hhitot=. if hhitot==.i | hhitot==.s | hhitot==.n | hhitot==.m | hhitot==.b | hhitot==.r  | hhitot==.d | hhitot==.p
+replace edu=. if edu==-18 | edu==-15 | edu==-13 | edu==-4 | edu==.d | edu==.m | edu==.r
+replace sex=. if sex==.m
+recode sex(1=0)(2=1)
+label values sex .
+replace age=. if age==.m
+replace digital=. if digital==.d | digital==.m | digital==.p | digital==.r
+replace cesd_con=. if cesd_con==.j
+bysort country: egen mean_cesd = mean(cesd_con)
+bysort country: egen sd_cesd   = sd(cesd_con)
+gen zcesd_con = (cesd_con - mean_cesd) / sd_cesd
+
+gen year=.
+replace year=2011 if country==3 & wave==1
+replace year=2013 if country==3 & wave==2
+replace year=2015 if country==3 & wave==3
+replace year=2018 if country==3 & wave==4
+
+replace year=2006 if country==21 & wave==1
+replace year=2008 if country==21 & wave==2
+replace year=2010 if country==21 & wave==3
+replace year=2012 if country==21 & wave==4
+replace year=2014 if country==21 & wave==5
+replace year=2016 if country==21 & wave==6
+
+replace year=2012 if country==7 & wave==1
+replace year=2014 if country==7 & wave==2
+replace year=2016 if country==7 & wave==3
+replace year=2018 if country==7 & wave==4
+
+
+replace year=2012 if (country!=7 & country!=22 & country!=3) & wave==1
+replace year=2014 if (country!=7 & country!=22 & country!=3) & wave==2
+replace year=2016 if (country!=7 & country!=22 & country!=3) & wave==3
+replace year=2018 if (country!=7 & country!=22 & country!=3) & wave==4
+
+drop wave
+rename year wave
+replace study=1 if country==3
+replace study=2 if country==21
+replace study=3 if country==7
+replace study=4 if (country!=15 & country!=7 & country!=22 & country!=3)
+
+save "IPW",replace
+
