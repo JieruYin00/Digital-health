@@ -1,5 +1,5 @@
 ###############################################################################
-#Figure 1 (digital) and Supplementary Table 1
+#Figure 1 and Supplementary Table 1
 forvalues c = 1/22 {
   foreach out in digital sex edu livealone employ livepr ltc smoke drink exercise income_q{
     asdoc proportion `out' if base==1 & age>=50 & age!=. & country==`c'
@@ -7,7 +7,7 @@ forvalues c = 1/22 {
   asdoc sum age if base==1 & age>=50 & age!=. & country==`c'
 }
 
-#Figure 1 (healthy aging score)
+#Figure 1
 #map
 forvalues c = 1/22 {
   sum adj_latent_aging_score if base ==1 & age>=50 & age!=.& country ==`c' 
@@ -314,7 +314,6 @@ forvalues c = 1/22 {
 	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & edu==3 & country==`c' || pid: cwave, vce(robust)
 	asdoc margins, dydx(b_digital), save(agingedu3.doc)
 }
-
 
 forvalues c = 1/22 {
 	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & income_q==1 & country==`c' || pid: cwave, vce(robust)
