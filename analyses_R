@@ -1,10 +1,11 @@
-
+###############################################################################
 #Figure 5a
 cor.test(data$digital, data$agingall, method = "pearson")
 cor.test(data$digital, data$cogall, method = "pearson")
 cor.test(data$digital, data$funcall, method = "pearson")
 cor.test(data$digital, data$healthall, method = "pearson")
 
+###############################################################################
 #Supplementary Fig. 11
 loess_fit3 <- loess(agingall ~ digital, data , span = 0.75, degree = 2, family = "symmetric")
 data$agingall_fit <- predict(loess_fit3)
@@ -33,3 +34,53 @@ rss1 <- sum((data$healthall - data$healthall_fit)^2)
 tss1 <- sum((data$healthall - mean(data$healthall))^2)
 pseudo_R21 <- 1 - rss1 / tss1
 print(paste0(" R²: ", round(pseudo_R21, 4)))
+
+###############################################################################
+#Figure 5b
+cor.test(data$digitalage0, data$agingage0, method = "pearson")
+cor.test(data$digitalage1, data$agingage1, method = "pearson")
+cor.test(data$digitalmale, data$agingmale, method = "pearson")
+cor.test(data$digitalfemale, data$agingfemale, method = "pearson")
+cor.test(data$digitaledu1, data$agingedu1, method = "pearson")
+cor.test(data$digitaledu2, data$agingedu2, method = "pearson")
+cor.test(data$digitaledu3, data$agingedu3, method = "pearson")
+cor.test(data$digitalincome1, data$agingincome1, method = "pearson")
+cor.test(data$digitalincome2, data$agingincome2, method = "pearson")
+cor.test(data$digitalincome3, data$agingincome3, method = "pearson")
+cor.test(data$digitalincome4, data$agingincome4, method = "pearson")
+
+cor.test(data$digitalage0, data$cogage0, method = "pearson")
+cor.test(data$digitalage1, data$cogage1, method = "pearson")
+cor.test(data$digitalmale, data$cogmale, method = "pearson")
+cor.test(data$digitalfemale, data$cogfemale, method = "pearson")
+cor.test(data$digitaledu1, data$cogedu1, method = "pearson")
+cor.test(data$digitaledu2, data$cogedu2, method = "pearson")
+cor.test(data$digitaledu3, data$cogedu3, method = "pearson")
+cor.test(data$digitalincome1, data$cogincome1, method = "pearson")
+cor.test(data$digitalincome2, data$cogincome2, method = "pearson")
+cor.test(data$digitalincome3, data$cogincome3, method = "pearson")
+cor.test(data$digitalincome4, data$cogincome4, method = "pearson")
+
+cor.test(data$digitalage0, data$functionage0, method = "pearson")
+cor.test(data$digitalage1, data$functionage1, method = "pearson")
+cor.test(data$digitalmale, data$functionmale, method = "pearson")
+cor.test(data$digitalfemale, data$functionfemale, method = "pearson")
+cor.test(data$digitaledu1, data$functionedu1, method = "pearson")
+cor.test(data$digitaledu2, data$functionedu2, method = "pearson")
+cor.test(data$digitaledu3, data$functionedu3, method = "pearson")
+cor.test(data$digitalincome1, data$functionincome1, method = "pearson")
+cor.test(data$digitalincome2, data$functionincome2, method = "pearson")
+cor.test(data$digitalincome3, data$functionincome3, method = "pearson")
+cor.test(data$digitalincome4, data$functionincome4, method = "pearson")
+
+cor.test(data$digitalage0, data$healthage0, method = "pearson")
+cor.test(data$digitalage1, data$healthage1, method = "pearson")
+cor.test(data$digitalmale, data$healthmale, method = "pearson")
+cor.test(data$digitalfemale, data$healthfemale, method = "pearson")
+cor.test(data$digitaledu1, data$healthedu1, method = "pearson")
+cor.test(data$digitaledu2, data$healthedu2, method = "pearson")
+cor.test(data$digitaledu3, data$healthedu3, method = "pearson")
+cor.test(data$digitalincome1, data$healthincome1, method = "pearson")
+cor.test(data$digitalincome2, data$healthincome2, method = "pearson")
+cor.test(data$digitalincome3, data$healthincome3, method = "pearson")
+cor.test(data$digitalincome4, data$healthincome4, method = "pearson")
