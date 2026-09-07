@@ -500,100 +500,46 @@ meta summarize,subgroup(subgroup2)
 meta summarize if subgroup2==1,predint(95)
 
 ###############################################################################
-#Supplementary Table 19
-clear
-use xcountry_digital1
-global demo " livealone age livepr"
-global ses " income_q employ "
-global health "zcesd_con ltc"
-global behavior " smoke drink exercise"
-
-gen cc=1 if !inlist(.,hhitot, employ, zcesd_con, livealone, digital, age, ltc, livepr, smoke, drink, exercise) & b_age>=50 & b_age!=.
-bysort pid: egen cctot=total(cc)
-gen ccsamp=1 if cctot >1
-gen finsamp=1 if ccsamp==1 & cc==1
-recode finsamp .=0
-
-#The purpose of the fixed-effects models was not to replicate the full structure of the mixed-effects models, but to assess the robustness of the average association under a more restrictive within-person identification strategy.
-
-forvalues c = 1/22 {
-asdoc xtreg adj_latent_aging_score digital c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & finsamp==1 & country==`c', fe vce(robust), save(fixedaging.doc)
-}
-
-forvalues c = 1/22 {
-asdoc xtreg adj_latent_cog_score digital c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & finsamp==1 & country==`c', fe vce(robust), save(fixedcog.doc)
-}
-
-forvalues c = 1/22 {
-asdoc xtreg adj_latent_func_score digital c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & finsamp==1 & country==`c', fe vce(robust), save(fixedfunc.doc)
-}
-
-forvalues c = 1/22 {
-asdoc xtreg adj_latent_health_score digital c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & finsamp==1 & country==`c', fe vce(robust), save(fixedhealth.doc)
-}
-
-#meta-analyses
-clear
-use fixedaging
-meta set aging_coef aging_se, random(reml) studylabel (country)
-meta summarize, random(reml) predint(95)
-
-clear
-use fixedcog
-meta set cog_coef cog_se, random(reml) studylabel (country)
-meta summarize, random(reml) predint(95)
-
-clear
-use fixedfunc
-meta set func_coef func_se, random(reml) studylabel (country)
-meta summarize, random(reml) predint(95)
-
-clear
-use fixedhealth
-meta set health_coef health_se, random(reml) studylabel (country)
-meta summarize, random(reml) predint(95)
-
-###############################################################################
 #Supplementary Fig. 19
 clear
-use "cognition1"
+use cognition1
 drop age
 recast long ID
 format %14.0g ID
-merge 1:1 ID wave country using "xcountry_digital"
+merge 1:1 ID wave country using xcountry_digital
 rename _merge merge1
 rename Ttrait adj_latent_cog_score
-save "IPW"
+save IPW
 
 clear
-use "health1"
+use health1
 drop age
 recast long ID
 format %14.0g ID
-merge 1:1 ID wave country using "IPW"
+merge 1:1 ID wave country using IPW
 rename _merge merge2
 rename Ttrait adj_latent_health_score
-save "IPW",replace
+save IPW,replace
 
 clear
-use "function1"
+use function1
 drop age
 recast long ID
 format %14.0g ID
-merge 1:1 ID wave country using "IPW"
+merge 1:1 ID wave country using IPW
 rename _merge merge3
 rename Ttrait adj_latent_func_score
-save "IPW",replace
+save IPW,replace
 
 clear
-use "aging1"
+use aging1
 drop age
 recast long ID
 format %14.0g ID
-merge 1:1 ID wave country using "IPW"
+merge 1:1 ID wave country using IPW
 rename _merge merge4
 rename Ttrait adj_latent_aging_score
-save "IPW",replace
+save IPW,replace
 
 drop merge1 merge2 merge3 merge4
 
@@ -640,5 +586,86 @@ replace study=2 if country==21
 replace study=3 if country==7
 replace study=4 if (country!=15 & country!=7 & country!=22 & country!=3)
 
-save "IPW",replace
+save IPW,replace
+
+clear
+use IPWCHARLS
+gen country=3
+save IPWCHARLS,replace
+
+clear
+use IPWHRS
+gen country=22
+save IPWHRS,replace
+
+
+clear
+use IPWELSA
+gen country=7
+save IPWELSA,replace
+
+clear
+use IPWCHARLS
+append using IPWHRS
+append using IPWELSA
+append using IPWSHARE
+
+
+destring ID,replace
+recast long ID
+format %14.0g ID
+rename wave year
+save IPW2
+
+clear
+use xcountry_digital1
+merge 1:1 ID year country using IPW2
+rename _merge merge
+keep if merge==3
+
+global demo " b_livealone b_age b_sex b_livepr"
+global ses " income_q b_employ b_edu "
+global health "b_zcesd_con b_ltc"
+global behavior "b_smoke b_drink b_exercise"
+
+forvalues c = 1/21 {
+	xtmixed adj_latent_aging_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & country==`c' [pweight=attrition_ipw]|| pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(ipwaging.doc)
+}
+
+forvalues c = 1/21 {
+	xtmixed adj_latent_rec_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & country==`c' [pweight=attrition_ipw] || pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(ipwcog.doc)
+}
+
+forvalues c = 1/21 {
+	xtmixed adj_latent_func_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & country==`c' [pweight=attrition_ipw]|| pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(ipwfunc.doc)
+}
+
+forvalues c = 1/21 {
+	xtmixed adj_latent_health_score b_digital##c.cwave $demo $ses $health $behavior if b_age>=50 & b_age!=. & country==`c' [pweight=attrition_ipw]|| pid: cwave, vce(robust)
+	asdoc margins, dydx(b_digital), save(ipwhealth.doc)
+}
+
+#meta-analyses
+clear
+use IPWaging
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use IPWcog
+meta set cog_coef cog_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use IPWfunc
+meta set func_coef func_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use IPWhealth
+meta set health_coef health_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
 
