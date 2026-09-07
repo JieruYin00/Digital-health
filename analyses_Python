@@ -1,0 +1,77 @@
+import pandas as pd
+import numpy as np
+
+def calculate_gini(arr):
+    uniqVal,counts =np.unique(np.sort(np.append(arr,0)),return_counts=True)
+    counts[0]=0
+    stat = pd.DataFrame({"UniqVal":uniqVal,"Counts":counts})
+    stat["totalVal"]= stat["UniqVal"]* stat['Counts']
+    stat["totalValCum"]= stat["totalVal"].cumsum()
+    stat["totalValRatio"]= stat["totalValCum"]/stat["totalValCum"].max()
+    stat["countCum"]= stat["Counts"].cumsum()
+    stat["countRatio"]= stat ["countCum"]/ stat["countCum"].max()
+    # save
+    # stat.plot(x="countRatio”，y="totalValRatio”)
+    lorenzCurve =pd.DataFrame({"xRatio": stat["countRatio"],"yRatio":stat["totalValRatio"]})
+    B=np.trapz(y=stat["totalValRatio"],x=stat["countRatio"])
+    A=0.5-B
+    G=A/(A+B)
+    return(f'{G:0.8f}')
+
+file_path = 'gini.xlsx'
+
+
+test = pd.read_excel(file_path, sheet_name=0)
+
+# **所有**
+filtered_data = test.copy()
+
+# **定义因变量**
+dependent_vars = [
+    "adj_latent_rec_score", 
+    "adj_latent_health_score", 
+    "adj_latent_func_score", 
+    "adj_latent_aging_score"
+]
+
+# **存储 Gini 计算结果**
+gini_results = []
+
+# **遍历所有国家**
+for country in sorted(filtered_data['country'].unique()):
+    country_data = filtered_data[filtered_data['country'] == country]
+
+    # **初始化每个国家的数据行**
+    country_gini = [country]
+
+    # **计算每个因变量的 Gini 系数**
+    for var in dependent_vars:
+        if var in country_data.columns and not country_data[var].isna().all():
+            gini = calculate_gini(country_data[var])
+        else:
+            gini = np.nan  # 如果缺失则填充 NaN
+        country_gini.append(gini)
+
+    # **确保行长度与列名匹配**
+    if len(country_gini) == len(dependent_vars) + 1:
+        gini_results.append(country_gini)
+    else:
+        print(f"Error: 国家 {country} 数据长度不匹配，数据: {country_gini}")
+
+# **生成列名 - 修复索引错误**
+# 方法1：直接使用变量名
+columns = ["Country"] + [f"Gini_{var}" for var in dependent_vars]
+
+# 或者方法2：如果变量名有下划线，只取最后一部分
+# columns = ["Country"] + [f"Gini_{var.split('_')[-1]}" for var in dependent_vars]
+
+# **转换为 DataFrame**
+gini_df = pd.DataFrame(gini_results, columns=columns)
+
+# **输出 DataFrame**
+print(gini_df)
+
+# **保存到 Excel**
+output_path = "D:/98/Documents/data/00-全球老年数据处理/2025.04/digital healthy aging/data/gini系数计算.xlsx"
+gini_df.to_excel(output_path, index=False)
+print(f"Gini 系数计算完成，结果已保存至 {output_path}")
