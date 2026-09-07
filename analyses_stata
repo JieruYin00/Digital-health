@@ -538,4 +538,17 @@ use fixedaging
 meta set aging_coef aging_se, random(reml) studylabel (country)
 meta summarize, random(reml) predint(95)
 
+clear
+use fixedcog
+meta set cog_coef cog_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
 
+clear
+use fixedfunc
+meta set func_coef func_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
+
+clear
+use fixedhealth
+meta set health_coef health_se, random(reml) studylabel (country)
+meta summarize, random(reml) predint(95)
