@@ -263,3 +263,60 @@ attr_ipw1 <- (attr_ipw %>% select(ID, wave, attrition_ipw))
 write.dta(attr_ipw1, "IPWCHARLS.dta")
 
 
+###############################################################################
+#Supplementary Table 22 and Supplementary Figs. 15-16
+library(missForest)
+library(haven)
+library(dplyr)
+
+data <- read_dta("randomforest.dta")
+data <- as.data.frame(data)
+for (v in names(data)) {
+  if (is.labelled(data[[v]])) {
+    data[[v]] <- as_factor(data[[v]])
+  }
+}
+bvars <- grep("^b_", names(data), value = TRUE)
+factor_vars <- c("b_sex","b_employ","b_livealone","b_digital",
+                 "b_edu","b_ltc","b_livepr","b_smoke",
+                 "b_drink","b_exercise")
+for (v in intersect(factor_vars, names(data))) {
+  data[[v]] <- as.factor(data[[v]])
+}
+
+savepath <- "data/"
+
+for (c in 1:22) {
+  d <- data[data$country == c, ]
+  d_b <- d[, bvars, drop = FALSE]
+  set.seed(123)
+  imp <- missForest(
+    d_b,
+    ntree = 300,
+    maxiter = 10,
+    variablewise = FALSE
+  )
+  d_imp <- d
+  d_imp[, bvars] <- imp$ximp
+  outfile <- paste0(savepath, "imputed_country_", c, ".dta")
+  write_dta(d_imp, outfile) 
+}
+all_list <- list()
+for (c in 1:22) { 
+  file <- paste0(savepath, "imputed_country_", c, ".dta")
+  all_list[[c]] <- read_dta(file)
+}
+full_data <- bind_rows(all_list)
+write_dta(
+  full_data,
+  paste0(savepath, "imputed_full_22countries.dta")
+)
+write.csv(
+  full_data,
+  paste0(savepath, "imputed_full_22countries.csv"),
+  row.names = FALSE
+)
+save(
+  full_data,
+  file = paste0(savepath, "imputed_full_22countries.RData")
+)
