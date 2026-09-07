@@ -82,3 +82,142 @@ label var wave "Wave identifier"
 tab wave wave_str, m
 order ID householdID communityID wave wave_str
 save xcountry_digital, replace
+
+rename ragey age
+replace age=. if age==.m
+
+gen employ=.
+replace employ=0 if rwork==0
+replace employ=1 if rwork==1
+tab employ,m
+
+replace rshlta=. if rshlta==.d | rshlta==.m | rshlta==.r
+recode rshlta (5=1 "poor") (4=2 "fair") (3=3 "good") (2=4 "very good") (1=5 "excellent"), into (selfhealth)
+tab selfhealth,m
+
+gen ltc=.
+replace ltc=0 if rhibpe==0 & rdiabe==0 & rcancre==0 & rlunge==0 & rhearte==0 & rstroke==0 & rasthmae==0
+replace ltc=1 if rhibpe==1 | rdiabe==1 | rcancre==1 | rlunge==1 | rhearte==1 | rstroke==1 | rasthmae==1
+tab ltc,m
+
+gen cesd_con=rcesd10
+replace cesd_con=. if cesd_con==.d | cesd_con==.m | cesd_con==.p | cesd_con==.r
+tab cesd_con,m
+
+replace edu=. if edu==.d | edu==.m | edu==.q | edu==.r
+tab edu,m
+
+gen livealone=.
+replace livealone=0 if hhhres==1
+replace livealone=1 if hhhres>1 & hhhres!=.
+tab livealone,m
+
+gen smoke=rsmoken
+replace smoke=. if rsmoken==.m
+tab smoke rsmoken,m
+
+gen drink=.
+replace drink=0 if rdrinkn_c==0 | rdrinkn_c==1 | rdrinkn_c==2 | rdrinkn_c==3
+replace drink=1 if rdrinkn_c==4 | rdrinkn_c==5 | rdrinkn_c==6 | rdrinkn_c==7 | rdrinkn_c==8 | rdrinkn_c==9
+tab drink rdrinkn_c,m
+
+gen exercise=.
+replace rvgactx_c=. if rvgactx_c==.d | rvgactx_c==.m | rvgactx_c==.r
+replace rmdactx_c=. if rmdactx_c==.d | rmdactx_c==.m | rmdactx_c==.r
+replace exercise=1 if rvgactx_c==0 | rmdactx_c==0
+replace exercise=0 if (rvgactx_c>=1 & rvgactx_c!=.) | (rmdactx_c>=1 & rmdactx_c!=.)
+tab exercise,m
+
+gen livepr = 1 if rmstat==4 | rmstat==5 | rmstat==7 | rmstat==8
+replace livepr = 0 if rmstat==1 | rmstat==3
+tab livepr rmstat,m
+
+save xcountry_digital, replace
+
+#wave1
+clear
+use CHARLS
+keep ID r1agey
+save wave1_junk
+
+clear
+use CHARLSw1\health_status_and_functioning
+gen ID1 = substr(ID,1,9) + "0" + substr(ID,10,2)
+drop ID
+rename ID1 ID
+merge 1:1 ID using wave1_junk
+rename _merge merge1
+gen digital=.
+replace digital=0 if da056s10==10
+replace digital=1 if da056s10==.e
+gen wave=1
+keep ID wave digital 
+save wave1_junk,replace
+
+#wave2
+clear
+use CHARLS
+keep ID r2agey
+save wave2_junk
+merge 1:1 ID using CHARLSw2\health_status_and_functioning
+rename _merge merge2
+gen digital=.
+replace digital=0 if da056s10==10
+replace digital=1 if (da056s1==1 | da056s2==2 | da056s3==3 | da056s4==4 | da056s5==5 | da056s6==6 | da056s7==7 | da056s8==8 | da056s9==9 | da056s11==11 | da056s12==12) & da056s10==.
+gen wave=2
+keep ID wave digital
+save wave2_junk,replace
+
+#wave3
+clear
+use CHARLS
+keep ID r3agey
+save wave3_junk
+merge 1:1 ID using CHARLSw3\health_status_and_functioning
+rename _merge merge3
+gen digital=.
+replace digital=0 if da056s10==10
+replace digital=1 if (da056s1==1 | da056s2==2 | da056s3==3 | da056s4==4 | da056s5==5 | da056s6==6 | da056s7==7 | da056s8==8 | da056s9==9 | da056s11==11 | da056s12==12) & da056s10==.
+gen wave=3
+keep ID wave digital
+save wave3_junk,replace
+clear
+
+#wave4
+use CHARLS
+keep ID r4agey
+save wave4_junk
+merge 1:1 ID using CHARLSw4\health_status_and_functioning
+rename _merge merge4
+gen digital=.
+replace digital=0 if da056_s10==10
+replace digital=1 if da056_s10==0
+gen wave=4
+keep ID wave digital 
+save wave4_junk,replace
+
+#merge
+clear
+use wave1_junk
+append using wave2_junk
+append using wave3_junk
+append using wave4_junk
+sort ID wave
+save alljunk
+
+clear
+use xcountry_digital
+drop if wave==.
+tab wave,m
+merge 1:1 ID wave using alljunk
+rename _merge merge5
+tab wave merge5, m
+ 
+erase wave1_junk
+erase wave2_junk
+erase wave3_junk
+erase wave4_junk
+erase alljunk
+
+save xcountry_digital, replace
+
