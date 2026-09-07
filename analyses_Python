@@ -20,58 +20,189 @@ def calculate_gini(arr):
 
 file_path = 'gini.xlsx'
 
-
+###############################################################################
+#Figure 1 (gini)
 test = pd.read_excel(file_path, sheet_name=0)
-
-# **所有**
 filtered_data = test.copy()
+dependent_vars = [
+    "adj_latent_cog_score", 
+    "adj_latent_health_score", 
+    "adj_latent_func_score", 
+    "adj_latent_aging_score"
+]
+gini_results = []
+for country in sorted(filtered_data['country'].unique()):
+    country_data = filtered_data[filtered_data['country'] == country]
+    country_gini = [country]
+    for var in dependent_vars:
+        if var in country_data.columns and not country_data[var].isna().all():
+            gini = calculate_gini(country_data[var])
+        else:
+            gini = np.nan 
+        country_gini.append(gini)
+    if len(country_gini) == len(dependent_vars) + 1:
+        gini_results.append(country_gini)
+    else:
+        print(f"Error: 国家 {country} 数据长度不匹配，数据: {country_gini}")
+columns = ["Country"] + [f"Gini_{var}" for var in dependent_vars]
+gini_df = pd.DataFrame(gini_results, columns=columns)
+print(gini_df)
+output_path = 'gini index.xlsx'
+gini_df.to_excel(output_path, index=False)
 
-# **定义因变量**
+###############################################################################
+#Supplementary Fig. 3
+test = pd.read_excel(file_path, sheet_name=0)
 dependent_vars = [
     "adj_latent_rec_score", 
     "adj_latent_health_score", 
     "adj_latent_func_score", 
     "adj_latent_aging_score"
 ]
-
-# **存储 Gini 计算结果**
-gini_results = []
-
-# **遍历所有国家**
-for country in sorted(filtered_data['country'].unique()):
-    country_data = filtered_data[filtered_data['country'] == country]
-
-    # **初始化每个国家的数据行**
-    country_gini = [country]
-
-    # **计算每个因变量的 Gini 系数**
-    for var in dependent_vars:
-        if var in country_data.columns and not country_data[var].isna().all():
-            gini = calculate_gini(country_data[var])
-        else:
-            gini = np.nan  # 如果缺失则填充 NaN
-        country_gini.append(gini)
-
-    # **确保行长度与列名匹配**
-    if len(country_gini) == len(dependent_vars) + 1:
-        gini_results.append(country_gini)
+conditions = {
+    "all": None,
+    "age_group1_0": ("age_group1", 0),
+    "age_group1_1": ("age_group1", 1),
+    "sex_0": ("sex", 0),
+    "sex_1": ("sex", 1),
+    "edu_1": ("edu", 1),
+    "edu_2": ("edu", 2),
+    "edu_3": ("edu", 3),
+    "income_q_1": ("income_q", 1),
+    "income_q_2": ("income_q", 2),
+    "income_q_3": ("income_q", 3),
+    "income_q_4": ("income_q", 4)
+}
+all_results = {}
+for condition_name, condition in conditions.items():
+    if condition is None:
+        filtered_data = test.copy()
     else:
-        print(f"Error: 国家 {country} 数据长度不匹配，数据: {country_gini}")
+        var, value = condition
+        filtered_data = test[test[var] == value].copy()
+    gini_results = []
+    for country in sorted(filtered_data['country'].dropna().unique()):
+        country_data = filtered_data[
+            filtered_data['country'] == country
+        ]
+        country_gini = [country]
+        for var in dependent_vars:
+            if var in country_data.columns and not country_data[var].isna().all():
+                gini = calculate_gini(country_data[var])
+            else:
+                gini = np.nan
+            country_gini.append(gini)
+        gini_results.append(country_gini)
+    columns = ["Country"] + [
+        f"Gini_{var}" for var in dependent_vars
+    ]
+    gini_df = pd.DataFrame(
+        gini_results,
+        columns=columns
+    )
+    all_results[condition_name] = gini_df
+output_path = (
+    output_path = 'gini index.xlsx'
+)
+with pd.ExcelWriter(output_path) as writer:
+    for sheet_name, df in all_results.items():
+        df.to_excel(
+            writer,
+            sheet_name=sheet_name[:31],
+            index=False
+        )
 
-# **生成列名 - 修复索引错误**
-# 方法1：直接使用变量名
-columns = ["Country"] + [f"Gini_{var}" for var in dependent_vars]
+###############################################################################
+#Figure 2
+#country
+def bootstrap_g0_g1(y, d, stat_func, n_boot=1000):
+    y = np.asarray(y)
+    d = np.asarray(d)
+    mask = ~np.isnan(y) & ~np.isnan(d)
+    y, d = y[mask], d[mask]
+    n = len(y)
+    if n < 10:
+        return [np.nan]*12  # g0, g0_L, g0_U, g1, g1_L, g1_U, diff, diff_L, diff_U, rel, rel_L, rel_U
+    def stats(idx):
+        yb, db = y[idx], d[idx]
+        g1 = stat_func(yb[db==1])
+        g0 = stat_func(yb[db==0])
+        diff_abs = g1 - g0
+        diff_rel = (g1 - g0)/g0 if g0 != 0 else np.nan
+        return g0, g1, diff_abs, diff_rel
 
-# 或者方法2：如果变量名有下划线，只取最后一部分
-# columns = ["Country"] + [f"Gini_{var.split('_')[-1]}" for var in dependent_vars]
+    theta_hat = stats(np.arange(n))
 
-# **转换为 DataFrame**
-gini_df = pd.DataFrame(gini_results, columns=columns)
+    # bootstrap
+    boot = np.array([stats(np.random.choice(np.arange(n), n, replace=True)) for _ in range(n_boot)])
+    boot_g0, boot_g1, boot_diff, boot_rel = boot[:,0], boot[:,1], boot[:,2], boot[:,3]
 
-# **输出 DataFrame**
-print(gini_df)
+    # percentile CI
+    def percentile_ci(vals):
+        vals = vals[~np.isnan(vals)]
+        if len(vals) < 50:
+            return [np.nan, np.nan]
+        return np.percentile(vals, [2.5, 97.5])
 
-# **保存到 Excel**
-output_path = "D:/98/Documents/data/00-全球老年数据处理/2025.04/digital healthy aging/data/gini系数计算.xlsx"
-gini_df.to_excel(output_path, index=False)
-print(f"Gini 系数计算完成，结果已保存至 {output_path}")
+    g0_ci = percentile_ci(boot_g0)
+    g1_ci = percentile_ci(boot_g1)
+    diff_ci = percentile_ci(boot_diff)
+    rel_ci = percentile_ci(boot_rel)
+
+    return [theta_hat[0], g0_ci[0], g0_ci[1],
+            theta_hat[1], g1_ci[0], g1_ci[1],
+            theta_hat[2], diff_ci[0], diff_ci[1],
+            theta_hat[3], rel_ci[0], rel_ci[1]]
+
+def analyze_multiple_scores(df, score_cols, group_col='digital', country_col='country', n_boot=1000):
+    results = []
+    for country in sorted(df[country_col].dropna().unique()):
+        country_data = df[df[country_col]==country]
+        n1 = (country_data[group_col]==1).sum()
+        n0 = (country_data[group_col]==0).sum()
+        if n1 < 5 or n0 < 5:
+            continue
+        row = {'国家': country, 'digital=1_样本量': n1, 'digital=0_样本量': n0}
+        for score in score_cols:
+            y = country_data[score].values
+            d = country_data[group_col].values
+            g0, g0L, g0U, g1, g1L, g1U, diff, diffL, diffU, rel, relL, relU = bootstrap_g0_g1(y, d, calculate_gini, n_boot)
+            row.update({
+                f'{score}_g0': g0, f'{score}_g0_L': g0L, f'{score}_g0_U': g0U,
+                f'{score}_g1': g1, f'{score}_g1_L': g1L, f'{score}_g1_U': g1U,
+                f'{score}_diff': diff, f'{score}_diff_L': diffL, f'{score}_diff_U': diffU,
+                f'{score}_rel': rel, f'{score}_rel_L': relL, f'{score}_rel_U': relU
+            })
+        results.append(row)
+    return pd.DataFrame(results)
+
+
+if __name__ == "__main__":
+    file_path = 'gini.xlsx'
+    df = pd.read_excel(file_path)
+    score_cols = ['adj_latent_aging_score','adj_latent_cog_score','adj_latent_func_score','adj_latent_health_score']
+    results_df = analyze_multiple_scores(df, score_cols, group_col='digital', country_col='country', n_boot=1000)
+    results_df.to_excel('gini_results_all_scores1.xlsx', index=False)
+
+#all
+def analyze_all_scores(df, score_cols, group_col='digital', n_boot=1000):
+    results = []
+    for score in score_cols:
+        y = df[score].values
+        d = df[group_col].values
+        g0, g0L, g0U, g1, g1L, g1U, diff, diffL, diffU, rel, relL, relU = bootstrap_g0_g1(y, d, calculate_gini, n_boot)
+        row.update({
+            f'{score}_g0': g0, f'{score}_g0_L': g0L, f'{score}_g0_U': g0U,
+            f'{score}_g1': g1, f'{score}_g1_L': g1L, f'{score}_g1_U': g1U,
+            f'{score}_diff': diff, f'{score}_diff_L': diffL, f'{score}_diff_U': diffU,
+            f'{score}_rel': rel, f'{score}_rel_L': relL, f'{score}_rel_U': relU
+        })
+        results.append(row)
+    return pd.DataFrame(results)
+
+if __name__ == "__main__":
+    file_path = 'gini.xlsx'
+    df = pd.read_excel(file_path)
+    score_cols = ['adj_latent_aging_score','adj_latent_cog_score','adj_latent_func_score','adj_latent_health_score']
+    results_df = analyze_all_scores(df, score_cols, group_col='digital', n_boot=1000)
+    results_df.to_excel('gini_results_totalnomexico.xlsx', index=False)
