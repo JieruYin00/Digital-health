@@ -21,7 +21,8 @@ def calculate_gini(arr):
 file_path = 'gini.xlsx'
 
 ###############################################################################
-#Figure 1 (gini)
+#Codes for Calculating the Gini Coefficient are presented below, which were used as reference for the rest of the analyses in this study
+#country
 test = pd.read_excel(file_path, sheet_name=0)
 filtered_data = test.copy()
 dependent_vars = [
@@ -50,8 +51,7 @@ print(gini_df)
 output_path = 'gini index.xlsx'
 gini_df.to_excel(output_path, index=False)
 
-###############################################################################
-#Supplementary Fig. 3
+#subgroup
 test = pd.read_excel(file_path, sheet_name=0)
 dependent_vars = [
     "adj_latent_rec_score", 
@@ -113,7 +113,7 @@ with pd.ExcelWriter(output_path) as writer:
         )
 
 ###############################################################################
-#Figure 2
+#Codes for Calculating the Gini Coefficient gap are presented below, which were used as reference for the rest of the analyses in this study
 #country
 def bootstrap_g0_g1(y, d, stat_func, n_boot=1000):
     y = np.asarray(y)
