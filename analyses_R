@@ -84,3 +84,10 @@ cor.test(data$digitalincome1, data$healthincome1, method = "pearson")
 cor.test(data$digitalincome2, data$healthincome2, method = "pearson")
 cor.test(data$digitalincome3, data$healthincome3, method = "pearson")
 cor.test(data$digitalincome4, data$healthincome4, method = "pearson")
+
+###############################################################################
+#Supplementary Fig. 1
+cor.test(data$digital, data$countrywealth, method = "pearson")
+cor.test(data$digital, data$gini, method = "pearson")
+cor.test(data$digital, data$happinessindex, method = "pearson")
+cor.test(data$digital, data$lifeexpect, method = "pearson")
