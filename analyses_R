@@ -1,0 +1,35 @@
+
+#Figure 5a
+cor.test(data$digital, data$agingall, method = "pearson")
+cor.test(data$digital, data$cogall, method = "pearson")
+cor.test(data$digital, data$funcall, method = "pearson")
+cor.test(data$digital, data$healthall, method = "pearson")
+
+#Supplementary Fig. 11
+loess_fit3 <- loess(agingall ~ digital, data , span = 0.75, degree = 2, family = "symmetric")
+data$agingall_fit <- predict(loess_fit3)
+rss3 <- sum((data$agingall - data$agingall_fit)^2)
+tss3 <- sum((data$agingall - mean(data$agingall))^2)
+pseudo_R23 <- 1 - rss3 / tss3
+print(paste0(" R²: ", round(pseudo_R23, 4)))
+
+loess_fit <- loess(cogall ~ digital, data , span = 0.75, degree = 2, family = "symmetric")
+data$cogall_fit <- predict(loess_fit)
+rss <- sum((data$cogall - data$cogall_fit)^2)
+tss <- sum((data$cogall - mean(data$cogall))^2)
+pseudo_R2 <- 1 - rss / tss
+print(paste0(" R²: ", round(pseudo_R2, 4)))
+
+loess_fit2 <- loess(functionall ~ digital, data , span = 0.75, degree = 2, family = "symmetric")
+data$functionall_fit <- predict(loess_fit2)
+rss2 <- sum((data$functionall - data$functionall_fit)^2)
+tss2 <- sum((data$functionall - mean(data$functionall))^2)
+pseudo_R22 <- 1 - rss2 / tss2
+print(paste0(" R²: ", round(pseudo_R22, 4)))
+
+loess_fit1 <- loess(healthall ~ digital, data , span = 0.75, degree = 2, family = "symmetric")
+data$healthall_fit <- predict(loess_fit1)
+rss1 <- sum((data$healthall - data$healthall_fit)^2)
+tss1 <- sum((data$healthall - mean(data$healthall))^2)
+pseudo_R21 <- 1 - rss1 / tss1
+print(paste0(" R²: ", round(pseudo_R21, 4)))
