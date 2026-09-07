@@ -1,0 +1,103 @@
+use "D:\98\Documents\data\00-全球老年数据\01-中国\H_CHARLS_D_Data（含省市）.dta"
+keep ID communityID province city householdID inw1 r1agey ragender raeducl r1shlta hh1itot h1hhres r1work r1retemp r1hibpe r1diabe r1cancre r1lunge r1hearte r1stroke r1asthmae r1mstat r1whappyl r1cesd10 r1satlife r1smoken r1drinkn_c r1vgactx_c r1mdactx_c r1itearn hh1ctot r1ser7 r1orient r1imrc r1dlrc
+
+gen wave1=1 if inw1==1
+drop if wave1==.
+tab wave1,m
+ 
+rename communityID communityID1
+rename province province1
+rename city city1
+rename householdID householdID1
+rename ragender sex1
+ 
+rename raeducl edu1
+
+save "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave1_junk.dta"
+
+*w2
+clear
+use "D:\98\Documents\data\00-全球老年数据\01-中国\H_CHARLS_D_Data（含省市）.dta"
+keep ID communityID province city householdID inw2 r2agey ragender raeducl r2shlta hh2itot h2hhres r2work r2retemp r2hibpe r2diabe r2cancre r2lunge r2hearte r2stroke r2asthmae r2mstat r2whappyl r2cesd10 r2satlife r2smoken r2drinkn_c r2vgactx_c r2mdactx_c r2itearn hh2ctot r2ser7 r2orient r2imrc r2dlrc
+
+
+gen wave2=2 if inw2==1
+drop if wave2==.
+tab wave2,m
+ 
+rename communityID communityID2
+rename province province2
+rename city city2
+rename householdID householdID2
+rename ragender sex2
+replace sex2=. if sex2==.m
+ 
+rename raeducl edu2
+save "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave2_junk.dta"
+
+*w3
+clear
+use "D:\98\Documents\data\00-全球老年数据\01-中国\H_CHARLS_D_Data（含省市）.dta"
+keep ID communityID province city householdID inw3 r3agey ragender raeducl r3shlta hh3itot h3hhres r3work r3retemp r3hibpe r3diabe r3cancre r3lunge r3hearte r3stroke r3asthmae r3mstat r3whappyl r3cesd10 r3satlife r3smoken r3drinkn_c r3vgactx_c r3mdactx_c r3itearn hh3ctot r3ser7 r3orient r3imrc r3dlrc
+
+
+gen wave3=3 if inw3==1
+drop if wave3==.
+tab wave3,m
+ 
+rename communityID communityID3
+rename province province3
+rename city city3
+rename householdID householdID3
+rename ragender sex3
+ 
+rename raeducl edu3
+
+save "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave3_junk.dta"
+
+*w4
+clear
+use "D:\98\Documents\data\00-全球老年数据\01-中国\H_CHARLS_D_Data（含省市）.dta"
+keep ID communityID province city householdID inw4 r4agey ragender raeducl r4shlta hh4itot h4hhres r4work r4retemp r4hibpe r4diabe r4cancre r4lunge r4hearte r4stroke r4asthmae r4mstat r4whappyl r4cesd10 r4satlife r4smoken r4drinkn_c r4vgactx_c r4mdactx_c r4itearn hh4ctot r4ser7 r4orient r4imrc r4dlrc
+
+
+gen wave4=4 if inw4==1
+drop if wave4==.
+tab wave4,m
+ 
+rename communityID communityID4
+rename province province4
+rename city city4
+rename householdID householdID4
+rename ragender sex4
+ 
+rename raeducl edu4
+
+save "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave4_junk.dta"
+
+*merge
+use "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave1_junk.dta", clear
+merge 1:1 ID using "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave2_junk.dta"
+rename _merge merge1
+merge 1:1 ID using "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave3_junk.dta"
+rename _merge merge2
+merge 1:1 ID using "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave4_junk.dta"
+rename _merge merge3
+
+save "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\xcountry_digital.dta",replace
+
+erase "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave1_junk.dta "
+erase "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave2_junk.dta "
+erase "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave3_junk.dta "
+erase "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave4_junk.dta "
+
+reshape long wave@ communityID@ province@ city@ householdID@ r@agey sex@ edu@ r@shlta hh@itot h@hhres r@work r@retemp r@hibpe r@diabe r@cancre r@lunge r@hearte r@stroke r@asthmae r@mstat r@whappyl r@cesd10 r@satlife r@smoken r@drinkn_c r@vgactx_c r@mdactx_c r@itearn hh@ctot r@ser7 r@orient r@imrc r@dlrc, i(ID) j(wave_str) string
+
+
+label var wave "Wave identifier"
+tab wave wave_str, m
+
+order ID householdID communityID wave wave_str
+
+
+save "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\xcountry_digital.dta ", replace
