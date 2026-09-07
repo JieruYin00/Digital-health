@@ -91,3 +91,212 @@ cor.test(data$digital, data$countrywealth, method = "pearson")
 cor.test(data$digital, data$gini, method = "pearson")
 cor.test(data$digital, data$happinessindex, method = "pearson")
 cor.test(data$digital, data$lifeexpect, method = "pearson")
+
+###############################################################################
+#Supplementary Fig. 19
+#
+library(dplyr)
+library(missRanger)
+library(tidyverse)
+library(haven)
+library(sjlabelled)
+library(tictoc)
+library(doParallel)
+library(foreign)
+
+#CHARLS
+tidy_charls <- read_dta("D:/98/Documents/data/00-全球老年数据处理/2025.04/digital healthy aging/data/IPW.dta")
+
+########################################################
+# country == 3
+########################################################
+
+data_c1 <- tidy_charls %>%
+  filter(country == 3) %>%
+  select(
+    ID,
+    wave,
+    hhitot,
+    employ,
+    zcesd_con,
+    livealone,
+    digital,
+    age,
+    sex,
+    edu,
+    ltc,
+    livepr,
+    smoke,
+    drink,
+    exercise,
+    adj_latent_aging_score,
+    adj_latent_func_score,
+    adj_latent_health_score,
+    adj_latent_rec_score
+  )
+
+
+########################################################
+# Random forest imputation
+########################################################
+
+rf_c1 <- missRanger(
+  data_c1,
+  formula = . - ID ~ .,
+  num.trees = 200,
+  pmm.k = 5,
+  seed = 123
+)
+
+########################################################
+# All observations of all participants in the original data
+# (baseline covariates + time-varying outcomes)
+########################################################
+
+bl <- rf_c1 %>% 
+  group_by(ID) %>% 
+  slice(1) %>%
+  ungroup() %>%
+  select(
+    ID, hhitot, employ, zcesd_con, livealone, digital, 
+    age, sex, edu, ltc, livepr, smoke, drink, exercise
+  )
+
+attr_ipw <- rf_c1 %>% 
+  select(
+    ID, wave,
+    adj_latent_aging_score,
+    adj_latent_func_score,
+    adj_latent_health_score,
+    adj_latent_rec_score
+  ) %>%
+  left_join(bl, by = "ID")
+
+########################################################
+# Construct attrition observations
+########################################################
+
+attr_obs <- tidy_charls %>% 
+  group_by(ID) %>%
+  slice(n()) %>%
+  ungroup() %>%
+  filter(wave != 2018) %>%
+  mutate(
+    wave = case_when(
+      wave == 2011 ~ 2013,
+      wave == 2013 ~ 2015,
+      wave == 2015 ~ 2018,
+      TRUE ~ NA_real_
+    ),
+    attrition = 1
+  ) %>% 
+  select(
+    ID, wave, attrition
+  )
+
+########################################################
+# Combine observed and attrition observations
+########################################################
+
+attr_ipw <- attr_ipw %>%
+  arrange(ID, wave) %>%
+  group_by(ID) %>%
+  mutate(
+    attrition = ifelse(!is.na(lead(wave)), 0, 1)) %>% 
+  mutate(
+    fisrt = first(wave),
+    cwave = wave - fisrt,
+    
+    lag_aging = lag(
+      adj_latent_aging_score,
+      default = first(adj_latent_aging_score)
+    ),
+    
+    lag_func = lag(
+      adj_latent_func_score,
+      default = first(adj_latent_func_score)
+    ),
+    
+    lag_health = lag(
+      adj_latent_health_score,
+      default = first(adj_latent_health_score)
+    ),
+    
+    lag_rec = lag(
+      adj_latent_rec_score,
+      default = first(adj_latent_rec_score)
+    )
+  ) %>%
+  ungroup()
+
+########################################################
+# Numerator model
+########################################################
+
+model_num <- glm(
+  attrition ~
+    hhitot+employ+zcesd_con+livealone+digital+age+sex+edu+ltc+livepr+smoke+drink+exercise,
+  data = attr_ipw,
+  family = binomial(link = "logit")
+)
+
+########################################################
+# Denominator model
+########################################################
+
+model_denom <- glm(
+  attrition ~
+    hhitot+employ+zcesd_con+livealone+digital+age+sex+edu+ltc+livepr+smoke+drink+exercise+
+    lag_aging +
+    lag_func +
+    lag_health +
+    lag_rec,
+  data = attr_ipw,
+  family = binomial(link = "logit")
+)
+
+########################################################
+# Propensity scores
+########################################################
+
+attr_ipw <- attr_ipw %>%
+  mutate(
+    propensity_num = predict(model_num, newdata = .,type = "response"),
+    propensity_denom = predict(model_denom, newdata = .,type = "response")
+  )
+
+########################################################
+# Combine weights
+########################################################
+
+attr_ipw <- attr_ipw %>%
+  mutate(
+    propensity_num_outcome =
+      ifelse(
+        attrition == 1,
+        propensity_num,
+        1 - propensity_num
+      ),
+    
+    propensity_denom_outcome =
+      ifelse(
+        attrition == 1,
+        propensity_denom,
+        1 - propensity_denom
+      )
+  ) %>%
+  mutate(
+    weights_no_time =
+      propensity_num_outcome /
+      propensity_denom_outcome
+  ) %>%
+  group_by(ID) %>%
+  mutate(
+    attrition_ipw = cumprod(weights_no_time)
+  ) %>%
+  ungroup()
+
+attr_ipw1 <- (attr_ipw %>% select(ID, wave, attrition_ipw))
+write.dta(attr_ipw1, "D:/98/Documents/data/00-全球老年数据处理/2025.04/digital healthy aging/data/IPWCHARLS.dta")
+
+
