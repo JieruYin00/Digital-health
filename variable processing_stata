@@ -1,4 +1,4 @@
-use "D:\98\Documents\data\00-全球老年数据\01-中国\H_CHARLS_D_Data（含省市）.dta"
+use CHARLS
 keep ID communityID province city householdID inw1 r1agey ragender raeducl r1shlta hh1itot h1hhres r1work r1retemp r1hibpe r1diabe r1cancre r1lunge r1hearte r1stroke r1asthmae r1mstat r1whappyl r1cesd10 r1satlife r1smoken r1drinkn_c r1vgactx_c r1mdactx_c r1itearn hh1ctot r1ser7 r1orient r1imrc r1dlrc
 
 gen wave1=1 if inw1==1
@@ -13,11 +13,11 @@ rename ragender sex1
  
 rename raeducl edu1
 
-save "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave1_junk.dta"
+save wave1_junk
 
 *w2
 clear
-use "D:\98\Documents\data\00-全球老年数据\01-中国\H_CHARLS_D_Data（含省市）.dta"
+use CHARLS
 keep ID communityID province city householdID inw2 r2agey ragender raeducl r2shlta hh2itot h2hhres r2work r2retemp r2hibpe r2diabe r2cancre r2lunge r2hearte r2stroke r2asthmae r2mstat r2whappyl r2cesd10 r2satlife r2smoken r2drinkn_c r2vgactx_c r2mdactx_c r2itearn hh2ctot r2ser7 r2orient r2imrc r2dlrc
 
 
@@ -33,7 +33,7 @@ rename ragender sex2
 replace sex2=. if sex2==.m
  
 rename raeducl edu2
-save "D:\98\Documents\data\00-全球老年数据处理\2025.04\digital healthy aging\01-中国\wave2_junk.dta"
+save wave2_junk
 
 *w3
 clear
