@@ -1,3 +1,5 @@
+###############################################################################
+#Codes for CHARLS are presented below, which were used as reference for the rest of the analyses in this study
 use CHARLS
 keep ID communityID province city householdID inw1 r1agey ragender raeducl r1shlta hh1itot h1hhres r1work r1retemp r1hibpe r1diabe r1cancre r1lunge r1hearte r1stroke r1asthmae r1mstat r1whappyl r1cesd10 r1satlife r1smoken r1drinkn_c r1vgactx_c r1mdactx_c r1itearn hh1ctot r1ser7 r1orient r1imrc r1dlrc
 
