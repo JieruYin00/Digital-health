@@ -446,7 +446,7 @@ meta set health_coef health_se, random(reml) studylabel (country)
 meta summarize, random(reml) predint(95)
 
 ###############################################################################
-#Supplementary Figs. 7-10
+#Supplementary Figs. 7-10 bubble plot
 #World happiness index accessed 2025.11.24
 #https://www.worldhappiness.report/data/
 #GDP accessed 2025.11.24
@@ -470,3 +470,31 @@ meta regress happinessindex, random(reml)
 
 meta set health_coef health_se, random(reml) studylabel (country_abb)
 meta regress happinessindex, random(reml)
+
+###############################################################################
+#Supplementary Table 19
+#by reference periods of digital exclusion
+#add a variable (subgroup2) distinguish between the different reference periods for each country
+clear
+use mixedaging
+meta set aging_coef aging_se, random(reml) studylabel (country)
+meta summarize,subgroup(subgroup2)
+meta summarize if subgroup2==1,predint(95)
+
+clear
+use mixedcog
+meta set cog_coef cog_se, random(reml) studylabel (country)
+meta summarize,subgroup(subgroup2)
+meta summarize if subgroup2==1,predint(95)
+
+clear
+use mixedfunc
+meta set func_coef func_se, random(reml) studylabel (country)
+meta summarize,subgroup(subgroup2)
+meta summarize if subgroup2==1,predint(95)
+
+clear
+use mixedhealth
+meta set health_coef health_se, random(reml) studylabel (country)
+meta summarize,subgroup(subgroup2)
+meta summarize if subgroup2==1,predint(95)
